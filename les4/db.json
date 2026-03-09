@@ -1,0 +1,11 @@
+{
+  "films": [
+    {
+      "id": "1",
+      "name": "Indiana Jones",
+      "year": 2003,
+      "img_preview": "https://www.film.ru/sites/default/files/styles/thumb_1024x450/public/trailers_frame/364342-indiana-jones-raiders-of-the-lost-ark-wallpaper.jpg",
+      "description": "Lorem ipsum dolor sit amet."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фильмы</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="container">
+        <form id="createFilm">
+            <h2>Добавьте Фильмы</h2>
+            
+            <input type="text" name="name" placeholder="name film" required>
+            <span class="error-msg"></span>
+            
+            <input type="number" name="year" placeholder="год фильма" required>
+            <span class="error-msg"></span>
+            
+            <input type="url" name="img_preview" placeholder="ссылка картинки на фильм" required>
+            <span class="error-msg"></span>
+            
+            <input type="text" name="description" placeholder="описание">
+            
+            <button type="submit">Создать фильм</button>
+        </form>
+        
+        <h1>Фильмы</h1>
+        <div class="films-cont" id="films"></div>
+    </div>
+
+    <script src="./main.js"></script>
+</body>
+</html>
