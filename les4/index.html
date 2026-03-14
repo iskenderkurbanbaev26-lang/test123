@@ -1,35 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Фильмы</title>
+    <title>Document</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div class="container">
-        <form id="createFilm">
-            <h2>Добавьте Фильмы</h2>
-            
-            <input type="text" name="name" placeholder="name film" required>
-            <span class="error-msg"></span>
-            
-            <input type="number" name="year" placeholder="год фильма" required>
-            <span class="error-msg"></span>
-            
-            <input type="url" name="img_preview" placeholder="ссылка картинки на фильм" required>
-            <span class="error-msg"></span>
-            
-            <input type="text" name="description" placeholder="описание">
-            
-            <button type="submit">Создать фильм</button>
-        </form>
+        <h2> Search Countries</h2>
         
-        <h1>Фильмы</h1>
-        <div class="films-cont" id="films"></div>
+        <div class="search-box">
+            <input 
+                id="searchInput" 
+                type="text" 
+                placeholder="Введите название страны или столицы..."
+                autocomplete="off"
+                aria-label="Поиск страны"
+            >
+            <button id="searchBtn" aria-label="Найти страну">Найти</button>
+            <button id="resetBtn" class="reset-btn" aria-label="Сбросить поиск">Сбросить</button>
+        </div>
+        
+        <p id="searchStatus" class="status" role="status" aria-live="polite"></p>
+        <div id="resultCountry" class="results-container" aria-label="Результаты поиска"></div>
     </div>
 
+    <div class="container">
+        <h2>All countries</h2>
+        <div id="loading" class="loading">Загрузка данных...</div>
+        <div id="countries" class="countries-grid" aria-label="Список всех стран"></div>
+    </div>
+    
     <script src="./main.js"></script>
 </body>
 </html>

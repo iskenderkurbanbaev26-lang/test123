@@ -1,124 +1,130 @@
-const films = document.getElementById('films');
-const createFilm = document.getElementById('createFilm');
-const validateFilm = (data) => {
-    const errors = {};
-    if (!data.name || data.name.trim().length <= 10) {
-        errors.name = 'Название должно быть больше 10 символов';
-    }
-    const year = Number(data.year);
-    if (!data.year || isNaN(year) || year < 1900 || year > 2026) {
-        errors.year = 'Год должен быть от 1900 до 2026';
-    }
-    const imgPattern = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i;
-    if (!data.img_preview || !imgPattern.test(data.img_preview.trim())) {
-        errors.img_preview = 'Введите валидную ссылку на изображение (.jpg, .png и т.д.)';
-    }
-    return errors;
-};
-const toggleError = (field, error, show) => {
-    const input = createFilm.elements[field];
-    const errorMsg = input.parentElement.querySelector('.error-msg');
-    
-    if (show) {
-        input.classList.add('error');
-        input.classList.remove('success');
-        if (errorMsg) {
-            errorMsg.textContent = error;
-            errorMsg.classList.add('show');
-        }
-    } else {
-        input.classList.remove('error');
-        input.classList.add('success');
-        if (errorMsg) errorMsg.classList.remove('show');
-    }
-};
-const clearErrors = () => {
-    createFilm.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-    createFilm.querySelectorAll('input').forEach(el => {
-        el.classList.remove('error', 'success');
-    });
-};
-const getFilms = async () => {
+const countriesContainer = document.getElementById('countries');
+const resultCountry = document.getElementById('resultCountry');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const resetBtn = document.getElementById('resetBtn');
+const searchStatus = document.getElementById('searchStatus');
+const loading = document.getElementById('loading');
+let allCountriesData = [];
+let searchTimeout;
+const getAllCountries = async () => {
     try {
-        const response = await fetch('http://localhost:5000/films');
-        const filmsData = await response.json();
-        renderFilm(filmsData);
+        loading.style.display = 'block';
+        loading.textContent = 'Загрузка данных...';
+        loading.style.color = 'rgba(255,255,255,0.7)';
+        countriesContainer.innerHTML = '';
+        const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+            throw new Error('Получены некорректные данные от сервера');
+        }
+        allCountriesData = data;
+        renderCountries(data, countriesContainer);
     } catch (error) {
-        console.log(error);
+        console.error('❌ Ошибка загрузки стран:', error);
+        loading.textContent = '❌ Ошибка загрузки. Проверьте интернет и обновите страницу.';
+        loading.style.color = '#ff6b6b';
+        loading.style.display = 'block';
+    } finally {
+        if (!loading.textContent.includes('Ошибка')) {
+            loading.style.display = 'none';
+        }
     }
 };
-const renderFilm = (allFilms) => {
-    films.innerHTML = '';
-    allFilms.forEach(film => {
-        const cont = document.createElement('div');
-        const img = document.createElement('img');
-        const p = document.createElement('p');
-        const year = document.createElement('p');
-        const btnDelete = document.createElement('button');
-        cont.className = 'kinoCont';
-        btnDelete.textContent = 'Удалить';
-        img.setAttribute('src', film.img_preview.trim());
-        p.textContent = film.name;
-        year.textContent = film.year;
-        btnDelete.onclick = () => deleteFilm(film.id);
-        cont.append(img, p, year, btnDelete);
-        films.appendChild(cont);
-    });
-};
-createFilm.onsubmit = async (e) => {
-    e.preventDefault();
-    clearErrors();
-
-    const formData = new FormData(createFilm);
-    const data = {
-        name: formData.get('name')?.trim(),
-        year: formData.get('year')?.trim(),
-        img_preview: formData.get('img_preview')?.trim(),
-        description: formData.get('description')?.trim(),
-    };
-    const errors = validateFilm(data);
-    
-    if (Object.keys(errors).length > 0) {
-        if (errors.name) toggleError('name', errors.name, true);
-        if (errors.year) toggleError('year', errors.year, true);
-        if (errors.img_preview) toggleError('img_preview', errors.img_preview, true);
+const renderCountries = (data, container) => {
+    container.innerHTML = '';
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        container.innerHTML = '<p class="no-results">😕 Страны не найдены</p>';
+        console.warn('⚠️ Пустой результат для отрисовки');
         return;
     }
-    try {
-        await fetch('http://localhost:5000/films', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(data),
-        });
-        alert('✅ Фильм создан!');
-        createFilm.reset();
-        getFilms();
-    } catch (error) {
-        console.log(error);
-        alert('❌ Ошибка при создании фильма');
+    data.forEach(country => {
+        try {
+            const card = document.createElement('div');
+            card.className = 'country-card';
+            card.setAttribute('role', 'article');
+            const flag = document.createElement('img');
+            flag.src = country.flags?.svg || country.flags?.png || '';
+            flag.alt = `Флаг ${country.name?.common || 'страны'}`;
+            flag.loading = 'lazy';
+            flag.onerror = () => {
+                flag.src = 'https://via.placeholder.com/120x80?text=🏳️';
+                flag.alt = 'Флаг недоступен';
+            };
+            const name = document.createElement('p');
+            name.className = 'country-name';
+            name.textContent = country.name?.common || 'Неизвестно';
+            const capital = document.createElement('p');
+            capital.className = 'country-capital';
+            capital.textContent = country.capital?.[0] || 'Столица неизвестна';
+            card.append(flag, name, capital);
+            container.appendChild(card);
+        } catch (err) {
+            console.error('❌ Ошибка при рендере карточки:', err, country);
+        }
+    });
+};
+const searchCountries = () => {
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) {
+        searchStatus.textContent = '';
+        searchStatus.style.color = '';
+        resultCountry.innerHTML = '';
+        console.log('⚠️ Поиск отменён: поле ввода пустое');
+        return;
+    }
+    searchStatus.textContent = '🔍 Поиск...';
+    searchStatus.style.color = '#7eb3f9';
+    const filtered = allCountriesData.filter(country => {
+        const nameCommon = country.name?.common?.toLowerCase() || '';
+        const nameOfficial = country.name?.official?.toLowerCase() || '';
+        const capital = country.capital?.[0]?.toLowerCase() || '';
+        return nameCommon.includes(query) ||
+               nameOfficial.includes(query) ||
+               capital.includes(query);
+    });
+    resultCountry.innerHTML = '';
+    if (filtered.length > 0) {
+        searchStatus.textContent = `✅ Найдено: ${filtered.length} стран(ы)`;
+        searchStatus.style.color = '#7eb3f9';
+        renderCountries(filtered, resultCountry);
+    } else {
+        console.warn('❌ Страна не найдена по запросу:', query);
+        searchStatus.textContent = '❌ Страна не найдена';
+        searchStatus.style.color = '#ff6b6b';
+        resultCountry.innerHTML = '<p class="no-results">😕 Попробуйте другой запрос</p>';
     }
 };
-const deleteFilm = async (id) => {
-    if (!confirm('Удалить этот фильм?')) return;
-    
-    try {
-        await fetch(`http://localhost:5000/films/${id}`, {
-            method: 'DELETE'
-        });
-        alert('Фильм удалён!');
-        getFilms();
-    } catch (error) {
-        console.log(error); 
-        alert('❌ Ошибка при удалении');
-    }
+const debouncedSearch = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(searchCountries, 300);
 };
-getFilms();
-createFilm.addEventListener('input', (e) => {
-    if (e.target.classList.contains('error')) {
-        const field = e.target.name;
-        const value = e.target.value.trim();
-        const testObj = { ...createFilm.dataset, [field]: value };
-        const errors = validateFilm(testObj);
-        if (!errors[field]) toggleError(field, '', false);
+const resetSearch = () => {
+    searchInput.value = '';
+    searchStatus.textContent = '';
+    searchStatus.style.color = '';
+    resultCountry.innerHTML = '';
+    searchInput.focus();
+    console.log('🔄 Поиск сброшен');
+};
+searchBtn.addEventListener('click', searchCountries);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        searchCountries();
     }
+});
+searchInput.addEventListener('input', () => {
+    if (searchInput.value.trim() === '') {
+        resetSearch();
+    } else {
+        debouncedSearch();
+    }
+});
+resetBtn.addEventListener('click', resetSearch);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🌍 Приложение запущено');
+    getAllCountries();
 });
